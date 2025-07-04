@@ -1,2 +1,4 @@
 prod_tracker_venv/
 stopwatch_sessions.csv
+__pycache__/
+buildozer.spec

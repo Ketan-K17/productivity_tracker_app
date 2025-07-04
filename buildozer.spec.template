@@ -1,0 +1,61 @@
+[app]
+# Basic app information
+title = Productivity Tracker
+package.name = productivitytracker
+package.domain = org.productivity
+
+# Source code settings
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,csv
+
+# Version (update this for each release)
+version = 0.1
+
+# Python requirements
+requirements = python3,kivy,kivymd,pandas,plotly
+
+# Display settings
+orientation = portrait
+fullscreen = 0
+
+# macOS settings (if building on macOS)
+osx.python_version = 3
+osx.kivy_version = 2.3.1
+
+# Android settings
+android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.api = 31
+android.minapi = 21
+android.sdk = 31
+android.ndk = 25b
+android.accept_sdk_license = True
+android.arch = arm64-v8a
+
+# Uncomment and configure if you need Google Sheets integration
+# android.gradle_dependencies = com.google.gms:google-services:4.3.10
+
+# App icon (place your icon files in the project root)
+# icon.filename = %(source.dir)s/icon.png
+
+# Presplash/loading screen (optional)
+# presplash.filename = %(source.dir)s/presplash.png
+
+# App signing (for release builds)
+# android.release_artifact = aab
+# android.keystore = %(source.dir)s/my-release-key.keystore
+# android.keyalias = my-key-alias
+# android.keystore_passwd = YOUR_KEYSTORE_PASSWORD
+# android.key_passwd = YOUR_KEY_PASSWORD
+
+[buildozer]
+log_level = 2
+warn_on_root = 1
+
+# Build directory (will be created automatically)
+bin_dir = ./bin
+
+# Uncomment to use a custom build directory
+# build_dir = ./.buildozer
+
+# Uncomment to clean build directory before building
+# no_copy_libs = 1
