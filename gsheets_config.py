@@ -24,7 +24,7 @@ class GoogleSheetsManager:
             if not os.path.exists(self.credentials_file):
                 raise FileNotFoundError(f"Credentials file '{self.credentials_file}' not found")
             
-            self.client = gspread.service_account(filename=self.credentials_file)
+            self.client = gspread.oauth()
             
             # Try to open existing sheet, create if doesn't exist
             try:
