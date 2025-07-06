@@ -47,6 +47,18 @@ class SimpleStopwatch:
 
     def start(self):
         if not self.running:
+            # First load data from Google Sheets
+            try:
+                if os.path.exists("credentials.json"):
+                    df = gsheets_manager.download_data()
+                    if df is not None and not df.empty:
+                        # Save the Google Sheets data to local CSV
+                        df[["session_start", "session_end"]].to_csv("stopwatch_sessions.csv", index=False)
+                        print("☁️ Loaded latest data from Google Sheets")
+                    self.total_seconds_today = self.load_today_total()  # Reload total after sync
+            except Exception as e:
+                print(f"⚠️ Failed to load from Google Sheets: {e}")
+                
             self.start_time = datetime.now()
             self.running = True
             print(f"🟢 Started at {self.start_time.strftime('%H:%M:%S')}")
@@ -57,6 +69,17 @@ class SimpleStopwatch:
             duration = (end_time - self.start_time).total_seconds()
             self.total_seconds_today += duration
             self.save_session(self.start_time, end_time)
+            
+            # Sync to Google Sheets
+            try:
+                if os.path.exists("credentials.json"):
+                    if gsheets_manager.upload_csv_data():
+                        print("☁️ Synced latest data to Google Sheets")
+                    else:
+                        print("⚠️ Failed to sync to Google Sheets")
+            except Exception as e:
+                print(f"⚠️ Failed to sync to Google Sheets: {e}")
+            
             self.running = False
             self.start_time = None
             print(f"⏸️ Paused at {end_time.strftime('%H:%M:%S')} — session saved")
@@ -88,17 +111,7 @@ class SimpleStopwatch:
         df.to_csv(filename, index=False)
         print(f"💾 Saved session: {start_dt.strftime('%H:%M:%S')} — {end_dt.strftime('%H:%M:%S')}")
         
-        # Try to sync to Google Sheets (silently fail if not configured)
-        try:
-            if os.path.exists("credentials.json"):
-                gsheets_manager.add_session(
-                    start_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    end_dt.strftime("%Y-%m-%d %H:%M:%S")
-                )
-                print("☁️ Synced to Google Sheets")
-        except Exception as e:
-            # Silently fail - don't break the app if Google Sheets sync fails
-            pass
+        # Remove the old Google Sheets sync since we now do it in pause()
 
     def load_today_total(self):
         filename = "stopwatch_sessions.csv"

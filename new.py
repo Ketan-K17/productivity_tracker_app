@@ -53,40 +53,10 @@ if "data" not in st.session_state:
     st.session_state.data = load_sessions()
 
 # Control buttons
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("Reload Data"):
-        st.session_state.data = load_sessions()
-        st.session_state.last_reload = datetime.now().strftime("%H:%M:%S")
-        st.success("Data reloaded from local CSV file!")
-
-with col2:
-    if st.button("Sync Google Sheet with CSV"):
-        if os.path.exists("credentials.json"):
-            if gsheets_manager.upload_csv_data():
-                st.success("✅ Data synced from CSV to Google Sheets!")
-                sheet_url = gsheets_manager.get_sheet_url()
-                if sheet_url:
-                    st.session_state.sheet_url = sheet_url
-            else:
-                st.error("❌ Failed to sync to Google Sheets")
-        else:
-            st.error("❌ credentials.json not found. Please follow the setup instructions.")
-
-with col3:
-    if st.button("Load from Google Sheets onto CSV"):
-        if os.path.exists("credentials.json"):
-            df = gsheets_manager.download_data()
-            if df is not None and not df.empty:
-                # Save the Google Sheets data to local CSV
-                df[["session_start", "session_end"]].to_csv(LOCAL_CSV_FILE, index=False)
-                st.session_state.data = df
-                st.success("✅ Data loaded from Google Sheets and saved to CSV!")
-            else:
-                st.error("❌ Failed to load from Google Sheets or no data found")
-        else:
-            st.error("❌ credentials.json not found. Please follow the setup instructions.")
+if st.button("Reload Data"):
+    st.session_state.data = load_sessions()
+    st.session_state.last_reload = datetime.now().strftime("%H:%M:%S")
+    st.success("Data reloaded from local CSV file!")
 
 # Show Google Sheets URL if available
 if "sheet_url" in st.session_state:
