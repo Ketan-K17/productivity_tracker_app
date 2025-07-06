@@ -3,17 +3,11 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 import plotly.express as px
 import os
-import gspread
+from gsheets_config import gsheets_manager
 
 # --------------------------- CONFIG ---------------------------
 PRODUCTIVE_THRESHOLD_HOURS = 6
-GOOGLE_SHEET_NAME = "Productivity Tracker"
-LOCAL_CSV_FILE = "stopwatch_sessions.csv"
-
-def get_gsheet():
-    client = gspread.service_account(filename="credentials.json")
-    sheet = client.open(GOOGLE_SHEET_NAME).sheet1
-    return sheet
+LOCAL_CSV_FILE = "/Users/ketankunkalikar/Desktop/streamlit_prod_tracker/stopwatch_sessions.csv"
 
 # ---------------------- COUNTDOWN DISPLAY ---------------------
 today = datetime.now()
@@ -56,13 +50,47 @@ def load_sessions():
 # ------------------------ UI & MAIN LOGIC ---------------------
 # Initialize session state
 if "data" not in st.session_state:
-    st.session_state.data = pd.DataFrame(columns=["session_start", "session_end", "duration_min"])
-
-# Reload button
-if st.button("Reload Data"):
     st.session_state.data = load_sessions()
-    st.session_state.last_reload = datetime.now().strftime("%H:%M:%S")
-    st.success("Data reloaded from local stopwatch app!")
+
+# Control buttons
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("Reload Data"):
+        st.session_state.data = load_sessions()
+        st.session_state.last_reload = datetime.now().strftime("%H:%M:%S")
+        st.success("Data reloaded from local CSV file!")
+
+with col2:
+    if st.button("Sync Google Sheet with CSV"):
+        if os.path.exists("credentials.json"):
+            if gsheets_manager.upload_csv_data():
+                st.success("✅ Data synced from CSV to Google Sheets!")
+                sheet_url = gsheets_manager.get_sheet_url()
+                if sheet_url:
+                    st.session_state.sheet_url = sheet_url
+            else:
+                st.error("❌ Failed to sync to Google Sheets")
+        else:
+            st.error("❌ credentials.json not found. Please follow the setup instructions.")
+
+with col3:
+    if st.button("Load from Google Sheets onto CSV"):
+        if os.path.exists("credentials.json"):
+            df = gsheets_manager.download_data()
+            if df is not None and not df.empty:
+                # Save the Google Sheets data to local CSV
+                df[["session_start", "session_end"]].to_csv(LOCAL_CSV_FILE, index=False)
+                st.session_state.data = df
+                st.success("✅ Data loaded from Google Sheets and saved to CSV!")
+            else:
+                st.error("❌ Failed to load from Google Sheets or no data found")
+        else:
+            st.error("❌ credentials.json not found. Please follow the setup instructions.")
+
+# Show Google Sheets URL if available
+if "sheet_url" in st.session_state:
+    st.info(f"📊 [View your Google Sheet]({st.session_state.sheet_url})")
 
 if "last_reload" in st.session_state:
     st.caption(f"Last Reload: {st.session_state.last_reload}")

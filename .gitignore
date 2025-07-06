@@ -1,4 +1,6 @@
 prod_tracker_venv/
-stopwatch_sessions.csv
 __pycache__/
 buildozer.spec
+credentials.json
+*.json
+stopwatch_sessions.csv

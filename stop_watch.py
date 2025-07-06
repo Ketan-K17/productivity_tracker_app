@@ -2,6 +2,7 @@ import tkinter as tk
 from datetime import datetime
 import pandas as pd
 import os
+from gsheets_config import gsheets_manager
 
 class SimpleStopwatch:
     def __init__(self, root):
@@ -86,6 +87,18 @@ class SimpleStopwatch:
 
         df.to_csv(filename, index=False)
         print(f"💾 Saved session: {start_dt.strftime('%H:%M:%S')} — {end_dt.strftime('%H:%M:%S')}")
+        
+        # Try to sync to Google Sheets (silently fail if not configured)
+        try:
+            if os.path.exists("credentials.json"):
+                gsheets_manager.add_session(
+                    start_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    end_dt.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                print("☁️ Synced to Google Sheets")
+        except Exception as e:
+            # Silently fail - don't break the app if Google Sheets sync fails
+            pass
 
     def load_today_total(self):
         filename = "stopwatch_sessions.csv"
